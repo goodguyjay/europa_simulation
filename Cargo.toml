@@ -1,0 +1,10 @@
+[workspace]
+members = ["crates/europa_app", "crates/europa_core", "crates/europa_math", "crates/europa_perf", "crates/europa_scene", "crates/europa_terrain"]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+
+[workspace.dependencies]
+bevy = { version = "0.17.2", features = ["jpeg", "png", "file_watcher"] }
+noise = { version = "0.9.0" }

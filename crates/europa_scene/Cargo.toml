@@ -1,0 +1,8 @@
+[package]
+name = "europa_scene"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy = { workspace = true }
+europa_terrain = { path = "../europa_terrain" }

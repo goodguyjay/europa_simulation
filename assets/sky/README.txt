@@ -1,0 +1,1 @@
+All of the textures were downloaded from https://www.solarsystemscope.com/textures/
