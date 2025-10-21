@@ -1,6 +1,7 @@
 use crate::sky::SkySettings;
 use bevy::camera::visibility::NoFrustumCulling;
 use bevy::prelude::*;
+use europa_math::smoothstep;
 
 pub struct StarfieldPlugin;
 
@@ -71,7 +72,7 @@ fn dim_stars_near_sun(
     };
 
     let view_dir = cam.forward().normalize();
-    let sun_dir = settings.sun_dir.normalize();
+    let sun_dir = settings.base_sun_dir.normalize();
     // angular separation between view center and the sun
     let sep = view_dir.dot(sun_dir).clamp(-1.0, 1.0).acos();
 
@@ -98,9 +99,4 @@ fn dim_stars_near_sun(
     if let Some(mat) = mats.get_mut(&star_mat.0) {
         mat.base_color = Color::linear_rgb(brightness, brightness, brightness);
     }
-}
-
-fn smoothstep(edge0: f32, edge1: f32, x: f32) -> f32 {
-    let t = ((x - edge0) / (edge1 - edge0)).clamp(0.0, 1.0);
-    t * t * (3.0 - 2.0 * t)
 }

@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 bevy = { workspace = true }
 europa_terrain = { path = "../europa_terrain" }
+europa_math = { path = "../europa_math" }

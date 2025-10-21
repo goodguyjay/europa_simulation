@@ -63,7 +63,7 @@ fn place_and_scale_jupiter(
     };
     let sky_r = (far * 0.85).min(SKY_RADIUS);
 
-    let dir = settings.jupiter_dir.normalize_or_zero();
+    let dir = settings.base_jupiter_dir.normalize_or_zero();
     t.translation = cam_t.translation + dir * sky_r;
 
     let theta = JUPITER_ANGULAR_DIAMETER_DEG.to_radians();
