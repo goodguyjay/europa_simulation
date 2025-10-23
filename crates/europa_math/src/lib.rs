@@ -1,14 +1,4 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+pub fn smoothstep(edge0: f32, edge1: f32, x: f32) -> f32 {
+    let t = ((x - edge0) / (edge1 - edge0)).clamp(0.0, 1.0);
+    t * t * (3.0 - 2.0 * t)
 }
