@@ -1,6 +1,24 @@
 use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
 
+#[derive(Resource, Default)]
+struct CamLock {
+    mode: LockMode,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum LockMode {
+    Free,
+    Sun,
+    // future things
+}
+
+impl Default for LockMode {
+    fn default() -> Self {
+        LockMode::Free
+    }
+}
+
 pub struct CameraPlugin;
 
 #[derive(Component)]
@@ -11,10 +29,13 @@ struct FlyCam {
     sensitivity: f32,
 }
 
+use crate::sky::SkySettings;
+
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_camera)
-            .add_systems(Update, (mouse_look, kb_move));
+        app.init_resource::<CamLock>()
+            .add_systems(Startup, spawn_camera)
+            .add_systems(Update, (toggle_lock, mouse_look, kb_move, lock_aim_update));
     }
 }
 
@@ -44,6 +65,23 @@ fn spawn_camera(mut commands: Commands) {
             sensitivity: 0.002,
         },
     ));
+}
+
+fn toggle_lock(keys: Res<ButtonInput<KeyCode>>, mut lock: ResMut<CamLock>) {
+    if keys.just_pressed(KeyCode::KeyF) {
+        lock.mode = match lock.mode {
+            LockMode::Free => LockMode::Sun,
+            _ => LockMode::Free,
+        };
+
+        info!(
+            "Camera lock: {:?}",
+            match lock.mode {
+                LockMode::Free => "Free",
+                LockMode::Sun => "Sun",
+            }
+        );
+    }
 }
 
 fn mouse_look(
@@ -103,5 +141,28 @@ fn kb_move(
     };
     if v.length_squared() > 0.0 {
         t.translation += v.normalize() * c.speed * boost * time.delta_secs();
+    }
+}
+
+fn lock_aim_update(
+    lock: Res<CamLock>,
+    settings: Res<SkySettings>,
+    mut q: Query<&mut Transform, With<Camera3d>>,
+) {
+    if lock.mode == LockMode::Free {
+        return;
+    }
+
+    let Ok(mut t) = q.single_mut() else {
+        return;
+    };
+
+    match lock.mode {
+        LockMode::Sun => {
+            let forward = settings.base_sun_dir.normalize();
+            t.look_to(forward, Vec3::Y);
+            // damp/smooth later
+        }
+        LockMode::Free => {}
     }
 }
