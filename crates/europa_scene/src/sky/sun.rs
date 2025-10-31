@@ -1,5 +1,5 @@
 use crate::constants::{SKY_RADIUS, SUN_ANGULAR_DIAMETER_DEG};
-use crate::sky::{SkySettings, SkyState};
+use crate::sky::{AssetLoadState, SkyAssets, SkySettings, SkyState};
 use crate::timeflow::SimSet;
 use bevy::camera::visibility::NoFrustumCulling;
 use bevy::light::{NotShadowCaster, NotShadowReceiver};
@@ -14,10 +14,13 @@ struct SunDisc;
 
 impl Plugin for SunPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_sun).add_systems(
-            Update,
-            (position_sun_disc, update_sun_light).in_set(SimSet::Animate),
-        );
+        app.add_systems(OnEnter(AssetLoadState::Ready), spawn_sun)
+            .add_systems(
+                Update,
+                (position_sun_disc, update_sun_light)
+                    .in_set(SimSet::Animate)
+                    .run_if(in_state(AssetLoadState::Ready)),
+            );
     }
 }
 
@@ -26,10 +29,8 @@ fn spawn_sun(
     settings: Res<SkySettings>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<StandardMaterial>>,
-    asset_server: Res<AssetServer>,
+    sky_assets: Res<SkyAssets>,
 ) {
-    let tex: Handle<Image> = asset_server.load("sky/Sun.jpg");
-
     // light
     commands.spawn((
         DirectionalLight {
@@ -51,7 +52,7 @@ fn spawn_sun(
     });
 
     let disc_mat = mats.add(StandardMaterial {
-        base_color_texture: Some(tex),
+        base_color_texture: Some(sky_assets.starfield_tex.clone()),
         unlit: true,
         alpha_mode: AlphaMode::Opaque,
         cull_mode: None,

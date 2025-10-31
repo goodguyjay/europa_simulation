@@ -1,4 +1,4 @@
-use crate::sky::SkySettings;
+use crate::sky::{AssetLoadState, SkyAssets, SkySettings};
 use bevy::camera::visibility::NoFrustumCulling;
 use bevy::prelude::*;
 use europa_math::smoothstep;
@@ -10,8 +10,11 @@ struct StarDome;
 
 impl Plugin for StarfieldPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_starfield)
-            .add_systems(Update, (track_camera, dim_stars_near_sun));
+        app.add_systems(OnEnter(AssetLoadState::Ready), spawn_starfield)
+            .add_systems(
+                Update,
+                (track_camera, dim_stars_near_sun).run_if(in_state(AssetLoadState::Ready)),
+            );
     }
 }
 
@@ -19,13 +22,11 @@ fn spawn_starfield(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<StandardMaterial>>,
-    asset_server: Res<AssetServer>,
+    sky_assets: Res<SkyAssets>,
 ) {
-    let tex: Handle<Image> = asset_server.load("sky/Starfield.jpg");
-
     let dome_mesh = meshes.add(Mesh::from(Sphere::new(1.0).mesh().uv(128, 64)));
     let dome_mat = mats.add(StandardMaterial {
-        base_color_texture: Some(tex),
+        base_color_texture: Some(sky_assets.starfield_tex.clone()),
         unlit: true,
         alpha_mode: AlphaMode::Opaque,
         cull_mode: None,

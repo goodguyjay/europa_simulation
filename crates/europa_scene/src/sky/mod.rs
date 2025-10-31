@@ -8,6 +8,21 @@ mod planetshine;
 mod starfield;
 mod sun;
 
+#[derive(Resource)]
+pub struct SkyAssets {
+    pub jupiter_tex: Handle<Image>,
+    pub sun_tex: Handle<Image>,
+    pub starfield_tex: Handle<Image>,
+    pub all_loaded: bool,
+}
+
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+pub enum AssetLoadState {
+    #[default]
+    Loading,
+    Ready,
+}
+
 pub struct SkyPlugin;
 
 #[derive(Resource, Default, Clone, Copy)]
@@ -55,7 +70,13 @@ impl Default for SkySettings {
 
 impl Plugin for SkyPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<SkySettings>()
+        app.init_state::<AssetLoadState>()
+            .add_systems(Startup, load_sky_assets)
+            .add_systems(
+                Update,
+                check_sky_assets_loaded.run_if(in_state(AssetLoadState::Loading)),
+            )
+            .init_resource::<SkySettings>()
             .init_resource::<SkyState>()
             .add_plugins((
                 sun::SunPlugin,
@@ -64,6 +85,38 @@ impl Plugin for SkyPlugin {
                 planetshine::PlanetshinePlugin,
             ))
             .add_systems(Update, animate_sky_physical.in_set(SimSet::Animate));
+    }
+}
+
+fn load_sky_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let jupiter_tex: Handle<Image> = asset_server.load("sky/Jupiter.jpg");
+    let sun_tex: Handle<Image> = asset_server.load("sky/Sun.jpg");
+    let starfield_tex: Handle<Image> = asset_server.load("sky/Starfield.jpg");
+
+    commands.insert_resource(SkyAssets {
+        jupiter_tex,
+        sun_tex,
+        starfield_tex,
+        all_loaded: false,
+    });
+}
+
+fn check_sky_assets_loaded(
+    mut assets: ResMut<SkyAssets>,
+    asset_server: Res<AssetServer>,
+    mut next_state: ResMut<NextState<AssetLoadState>>,
+) {
+    if assets.all_loaded {
+        return;
+    }
+
+    let jupiter_loaded = asset_server.is_loaded_with_dependencies(&assets.jupiter_tex);
+    let sun_loaded = asset_server.is_loaded_with_dependencies(&assets.sun_tex);
+    let starfield_loaded = asset_server.is_loaded_with_dependencies(&assets.starfield_tex);
+
+    if jupiter_loaded && sun_loaded && starfield_loaded {
+        assets.all_loaded = true;
+        next_state.set(AssetLoadState::Ready);
     }
 }
 
@@ -106,13 +159,4 @@ pub fn animate_sky_physical(
     state.planetshine_factor = planetshine;
 
     settings.base_sun_dir = sun_dir;
-}
-
-trait Reject {
-    fn reject_from(self, n: Vec3) -> Vec3;
-}
-impl Reject for Vec3 {
-    fn reject_from(self, n: Vec3) -> Vec3 {
-        self - self.project_onto(n)
-    }
 }

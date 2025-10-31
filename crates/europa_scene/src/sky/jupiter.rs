@@ -1,5 +1,5 @@
 use crate::constants::{JUPITER_ANGULAR_DIAMETER_DEG, JUPITER_OBLIQUITY_DEG, SKY_RADIUS};
-use crate::sky::SkySettings;
+use crate::sky::{AssetLoadState, SkyAssets, SkySettings};
 use bevy::camera::visibility::NoFrustumCulling;
 use bevy::prelude::*;
 
@@ -10,8 +10,11 @@ struct Jupiter;
 
 impl Plugin for JupiterPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_jupiter)
-            .add_systems(Update, place_and_scale_jupiter);
+        app.add_systems(OnEnter(AssetLoadState::Ready), spawn_jupiter)
+            .add_systems(
+                Update,
+                place_and_scale_jupiter.run_if(in_state(AssetLoadState::Ready)),
+            );
     }
 }
 
@@ -19,12 +22,10 @@ fn spawn_jupiter(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<StandardMaterial>>,
-    asset_server: Res<AssetServer>,
+    sky_assets: Res<SkyAssets>,
 ) {
-    let tex: Handle<Image> = asset_server.load("sky/Jupiter.jpg");
-
     let mat = mats.add(StandardMaterial {
-        base_color_texture: Some(tex),
+        base_color_texture: Some(sky_assets.jupiter_tex.clone()),
         base_color: Color::srgb(0.50, 0.50, 0.50),
         unlit: false,
         reflectance: 0.0,
@@ -84,8 +85,4 @@ fn place_and_scale_jupiter(
     let right = t.right().as_vec3();
 
     t.rotate(Quat::from_axis_angle(right, -std::f32::consts::FRAC_PI_2));
-
-    // todo: spin jupiter slowly about its forward axis
-    // let spin = Quat::from_axis_angle(f, sim.0 * (2.0*PI / (9.9*3600)) * spin_time_scale);
-    // t.rotation = spin * t.rotation;
 }
