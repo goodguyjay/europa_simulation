@@ -25,6 +25,7 @@ fn spawn_jupiter(
 
     let mat = mats.add(StandardMaterial {
         base_color_texture: Some(tex),
+        base_color: Color::srgb(0.50, 0.50, 0.50),
         unlit: false,
         reflectance: 0.0,
         perceptual_roughness: 1.0,

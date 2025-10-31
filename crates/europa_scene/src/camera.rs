@@ -10,6 +10,7 @@ struct CamLock {
 enum LockMode {
     Free,
     Sun,
+    Jupiter,
     // future things
 }
 
@@ -71,17 +72,27 @@ fn toggle_lock(keys: Res<ButtonInput<KeyCode>>, mut lock: ResMut<CamLock>) {
     if keys.just_pressed(KeyCode::KeyF) {
         lock.mode = match lock.mode {
             LockMode::Free => LockMode::Sun,
+            LockMode::Jupiter => LockMode::Sun,
             _ => LockMode::Free,
         };
-
-        info!(
-            "Camera lock: {:?}",
-            match lock.mode {
-                LockMode::Free => "Free",
-                LockMode::Sun => "Sun",
-            }
-        );
     }
+
+    if keys.just_pressed(KeyCode::KeyJ) {
+        lock.mode = match lock.mode {
+            LockMode::Free => LockMode::Jupiter,
+            LockMode::Sun => LockMode::Jupiter,
+            _ => LockMode::Free,
+        };
+    }
+
+    info!(
+        "Camera lock: {:?}",
+        match lock.mode {
+            LockMode::Free => "Free",
+            LockMode::Sun => "Sun",
+            LockMode::Jupiter => "Jupiter",
+        }
+    );
 }
 
 fn mouse_look(
@@ -160,6 +171,11 @@ fn lock_aim_update(
     match lock.mode {
         LockMode::Sun => {
             let forward = settings.base_sun_dir.normalize();
+            t.look_to(forward, Vec3::Y);
+            // damp/smooth later
+        }
+        LockMode::Jupiter => {
+            let forward = settings.base_jupiter_dir.normalize();
             t.look_to(forward, Vec3::Y);
             // damp/smooth later
         }
