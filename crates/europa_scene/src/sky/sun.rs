@@ -52,7 +52,7 @@ fn spawn_sun(
     });
 
     let disc_mat = mats.add(StandardMaterial {
-        base_color_texture: Some(sky_assets.starfield_tex.clone()),
+        base_color_texture: Some(sky_assets.sun_tex.clone()),
         unlit: true,
         alpha_mode: AlphaMode::Opaque,
         cull_mode: None,
@@ -93,7 +93,7 @@ fn update_sun_light(
 }
 
 fn position_sun_disc(
-    settings: Res<SkySettings>,
+    state: Res<SkyState>,
     cam_q: Query<(&Transform, &Projection), (With<Camera3d>, Without<SunDisc>)>,
     mut disc_q: Query<&mut Transform, (With<SunDisc>, Without<Camera3d>)>,
 ) {
@@ -108,7 +108,7 @@ fn position_sun_disc(
 
     let sky_r = (far * 0.85).min(SKY_RADIUS); // inside clip range
 
-    let dir_to_sun = settings.base_sun_dir.normalize();
+    let dir_to_sun = state.sun_dir.normalize();
     let mut t = disc_q.single_mut().unwrap();
 
     t.translation = cam_t.translation + dir_to_sun * sky_r;

@@ -55,7 +55,7 @@ impl Default for SkySettings {
             base_sun_dir: Vec3::new(-0.15, 0.35, -0.92).normalize(),
             base_jupiter_dir: Vec3::new(0.35, 0.25, -0.90).normalize(),
             sun_illuminance: 4500.0, // sun at ~5 AU
-            ambient_brightness: 0.02,
+            ambient_brightness: 0.05,
             europa_day_seconds: 3.551181_f32 * 86_400.0,
             orbit_normal: Vec3::Y,
             jupiter_libration_lat: 2.0_f32.to_radians(), // tiny artistic wiggle

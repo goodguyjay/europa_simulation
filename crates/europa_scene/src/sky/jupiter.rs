@@ -1,5 +1,5 @@
 use crate::constants::{JUPITER_ANGULAR_DIAMETER_DEG, JUPITER_OBLIQUITY_DEG, SKY_RADIUS};
-use crate::sky::{AssetLoadState, SkyAssets, SkySettings};
+use crate::sky::{AssetLoadState, SkyAssets, SkyState};
 use bevy::camera::visibility::NoFrustumCulling;
 use bevy::prelude::*;
 
@@ -26,7 +26,7 @@ fn spawn_jupiter(
 ) {
     let mat = mats.add(StandardMaterial {
         base_color_texture: Some(sky_assets.jupiter_tex.clone()),
-        base_color: Color::srgb(0.50, 0.50, 0.50),
+        base_color: Color::srgb(1.0, 1.0, 1.0),
         unlit: false,
         reflectance: 0.0,
         perceptual_roughness: 1.0,
@@ -47,7 +47,7 @@ fn spawn_jupiter(
 }
 
 fn place_and_scale_jupiter(
-    settings: Res<SkySettings>,
+    state: Res<SkyState>,
     cam_q: Query<(&Transform, &Projection), (With<Camera3d>, Without<Jupiter>)>,
     mut jup_q: Query<&mut Transform, (With<Jupiter>, Without<Camera3d>)>,
 ) {
@@ -65,7 +65,7 @@ fn place_and_scale_jupiter(
     };
     let sky_r = (far * 0.85).min(SKY_RADIUS);
 
-    let dir = settings.base_jupiter_dir.normalize_or_zero();
+    let dir = state.jupiter_dir.normalize();
     t.translation = cam_t.translation + dir * sky_r;
 
     let theta = JUPITER_ANGULAR_DIAMETER_DEG.to_radians();

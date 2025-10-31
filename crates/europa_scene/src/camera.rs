@@ -1,5 +1,6 @@
 use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
+use bevy::render::view::Hdr;
 
 #[derive(Resource, Default)]
 struct CamLock {
@@ -47,11 +48,12 @@ fn spawn_camera(mut commands: Commands) {
 
     commands.spawn((
         Camera3d::default(),
+        Hdr,
         Camera {
             clear_color: ClearColorConfig::Custom(Color::BLACK),
             ..default()
         },
-        bevy::core_pipeline::tonemapping::Tonemapping::AcesFitted,
+        bevy::core_pipeline::tonemapping::Tonemapping::TonyMcMapface,
         t,
         Projection::Perspective(PerspectiveProjection {
             near: 0.1,
